@@ -6,6 +6,11 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room)
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 kotlin {
@@ -39,7 +44,9 @@ kotlin {
             // Add KMM compatible libraries here
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
             implementation("io.insert-koin:koin-compose:1.1.2")
-            implementation(libs.compose.uiToolingPreview) // Move or add this here
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
         }
 
         androidMain.dependencies {

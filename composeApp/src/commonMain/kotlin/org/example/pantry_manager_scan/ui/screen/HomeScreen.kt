@@ -95,7 +95,6 @@ fun HomeScreen(
                     )
                 }
 
-
                 Icon(
                     imageVector = Icons.Filled.AccountCircle, // Vector icon bawaan Material
                     contentDescription = "Icon Lingkaran",
@@ -115,57 +114,57 @@ fun HomeScreen(
                 shape = RoundedCornerShape(25.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Row (
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(15.dp)
-                ){
-                    Card {
-                        Text(
-                            text = "Pantry",
-                            color = Color.Black,
-                            fontSize = 25.sp,
-                        )
-                    }
-                    Card {
-                        Text(
-                            text = "Pantry",
-                            color = Color.Black,
-                            fontSize = 25.sp,
-                        )
-                    }
-                }
-//                when {
-//                    state.isLoading -> {
-//                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-//                    }
-//                    state.error != null -> {
+//                Row (
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.fillMaxWidth().padding(15.dp)
+//                ){
+//                    Card {
 //                        Text(
-//                            text = "Error: ${state.error}",
-//                            color = MaterialTheme.colorScheme.error,
-//                            modifier = Modifier.align(Alignment.CenterHorizontally)
+//                            text = "Pantry",
+//                            color = Color.Black,
+//                            fontSize = 25.sp,
 //                        )
 //                    }
-//                    state.items.isEmpty() -> {
+//                    Card {
 //                        Text(
-//                            text = "Pantry masih kosong. Yuk tambah barang!",
-//                            modifier = Modifier.align(Alignment.CenterHorizontally)
+//                            text = "Pantry",
+//                            color = Color.Black,
+//                            fontSize = 25.sp,
 //                        )
-//                    }
-//                    else -> {
-//                        // LazyColumn = ListView.builder
-//                        LazyColumn(
-//                            modifier = Modifier.fillMaxSize(),
-//                            contentPadding = PaddingValues(16.dp),
-//                            verticalArrangement = Arrangement.spacedBy(8.dp) // Jarak antar item
-//                        ) {
-//                            // items() ini secara otomatis melakukan looping (seperti itemCount di Flutter)
-//                            items(state.items) { item ->
-//                                PantryItemCard(item = item, onDelete = { onDelete(item) })
-//                            }
-//                        }
 //                    }
 //                }
+                when {
+                    state.isLoading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    }
+                    state.error != null -> {
+                        Text(
+                            text = "Error: ${state.error}",
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    state.items.isEmpty() -> {
+                        Text(
+                            text = "Pantry masih kosong. Yuk tambah barang!",
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    else -> {
+                        // LazyColumn = ListView.builder
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp) // Jarak antar item
+                        ) {
+                            // items() ini secara otomatis melakukan looping (seperti itemCount di Flutter)
+                            items(state.items) { item ->
+                                PantryItemCard(item = item, onDelete = { onDelete(item) })
+                            }
+                        }
+                    }
+                }
             }
         }
     }
