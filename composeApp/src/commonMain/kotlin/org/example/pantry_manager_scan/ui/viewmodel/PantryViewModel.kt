@@ -2,7 +2,6 @@ package org.example.pantry_manager_scan.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +10,7 @@ import kotlinx.coroutines.launch
 import org.example.pantry_manager_scan.domain.model.PantryItem
 import org.example.pantry_manager_scan.domain.repository.PantryRepository
 
-class PantryVewModel(private val repository: PantryRepository) : ViewModel() {
+class PantryViewModel(private val repository: PantryRepository) : ViewModel() {
     private val _state = MutableStateFlow(PantryState())
 
     val state: StateFlow<PantryState> = _state.asStateFlow()
@@ -33,7 +32,7 @@ class PantryVewModel(private val repository: PantryRepository) : ViewModel() {
 
             try {
                 repository.getAllItem().collect { value ->
-                    _state.update { it.copy(items = value,isLoading = false, error = null) }
+                    _state.update { it.copy(items = value, isLoading = false, error = null) }
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, error = e.message ?: "Terjadi Kesalahan tidak dikenal") }
@@ -41,10 +40,9 @@ class PantryVewModel(private val repository: PantryRepository) : ViewModel() {
         }
     }
 
-    private fun deleteItem(item: PantryItem){
+    private fun deleteItem(item: PantryItem) {
         viewModelScope.launch {
             repository.deleteItem(item = item)
         }
     }
-
 }
