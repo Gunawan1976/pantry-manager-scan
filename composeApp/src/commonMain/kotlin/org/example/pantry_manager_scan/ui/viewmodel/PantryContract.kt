@@ -11,4 +11,5 @@ data class PantryState(
 sealed interface PantryEvent{
     object LoadItems : PantryEvent
     data class DeleteItem(val item: PantryItem): PantryEvent
+    data class SaveItem(val name: String, val category: String, val expiryDateMillis: Long,val isConsumed : Boolean) : PantryEvent
 }
