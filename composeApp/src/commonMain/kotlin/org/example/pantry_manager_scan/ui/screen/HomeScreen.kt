@@ -1,7 +1,6 @@
 package org.example.pantry_manager_scan.ui.screen
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -26,9 +24,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -42,16 +39,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+
 import kotlinx.datetime.Clock
 import org.example.pantry_manager_scan.domain.model.PantryItem
 import org.example.pantry_manager_scan.ui.components.PantryItemCard
+import org.example.pantry_manager_scan.ui.components.UrgentItemCard
 import org.example.pantry_manager_scan.ui.viewmodel.PantryState
 
 
@@ -64,17 +63,26 @@ fun HomeScreen(
 ) {
     val scrollState = rememberScrollState()
 
+    // Fixed: Added explicit package to avoid potential ambiguity with kotlin.time.Clock
     val currentTime = Clock.System.now().toEpochMilliseconds()
 
     val totalBarang = state.items.size
 
     val akanKedaluwarsa = state.items.count { item ->
         val sisaHari = item.getDaysRemaining(currentTime)
+        println("Sisa Hari: $sisaHari")
         sisaHari in 0..7
     }
 
+    val gunakanSegeraItems = state.items.filter { item ->
+        item.getDaysRemaining(currentTime) <= 3
+    }.sortedBy { it.expiryDateMillis }
+
+    val pantryItems = listOf("Kulkas", "Lemari Kering", "Bumbu", "Minuman")
+
+
     Scaffold(
-        containerColor = Color.LightGray,
+        containerColor = Color.LightGray.copy(alpha = 10F),
         floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToAdd) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
@@ -124,7 +132,6 @@ fun HomeScreen(
                     containerColor = Color.White
                 ),
                 shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp),
-//                modifier = Modifier.weight(1f).fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
@@ -188,41 +195,86 @@ fun HomeScreen(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(text = "Gunakan Sekarang")
+                    if (gunakanSegeraItems.isNotEmpty()) {
+                        Text(
+                            text = "Gunakan Segera!",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp), // Padding kiri-kanan
+                            horizontalArrangement = Arrangement.spacedBy(12.dp) // Jarak antar kotak
+                        ) {
+                            items(gunakanSegeraItems) { item ->
+                                UrgentItemCard(item = item, currentTime = currentTime)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    LazyRow {
-                        items(state.items) { item ->
-                            ElevatedCard(
-                                modifier = Modifier.padding(horizontal = 8.dp)
-                                    .size(120.dp)
-                                    .border(border = BorderStroke(0.4.dp, Color.Black), shape =RoundedCornerShape(corner = CornerSize(size = 12.dp))),
-                                colors = CardDefaults.cardColors(Color.White)
-                            ) {
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.DateRange,
-                                        contentDescription = "Account roti",
-                                        modifier = Modifier
-                                            .size(75.dp)
-                                            .clickable { }
-                                    )
+                    Text(text = "Tempat!", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
-                                    Text(
-                                        text = "telur"
-                                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+
+
+
+
+                        pantryItems.chunked(2).forEach { rowItems ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                rowItems.forEach { item ->
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color.LightGray),
+                                        modifier = Modifier.weight(1f).aspectRatio(1f)
+                                    ) {
+                                        Column (
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.Center,
+                                            horizontalAlignment = Alignment.CenterHorizontally
+
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.AccountCircle,
+                                                contentDescription = "Account Icon",
+                                                modifier = Modifier
+                                                    .size(75.dp)
+                                                    .clickable { }
+                                            )
+
+                                            Text(
+                                                text = item,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                                fontSize = 20.sp,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.padding(8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                if (rowItems.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }
                     }
-                }
 
-//                when {
+//                    when {
 //                    state.isLoading -> {
 //                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 //                            CircularProgressIndicator()
@@ -268,7 +320,7 @@ fun HomeScreen(
 ////                        }
 //                    }
 //                }
-
+                }
             }
         }
     }
