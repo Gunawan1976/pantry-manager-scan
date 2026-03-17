@@ -1,10 +1,8 @@
 package org.example.pantry_manager_scan.ui.screen
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,13 +16,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -83,11 +79,11 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = Color.LightGray.copy(alpha = 10F),
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAdd) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
-            }
-        }
+//        floatingActionButton = {
+//            FloatingActionButton(onClick = onNavigateToAdd) {
+//                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+//            }
+//        }
     ) { paddingValues ->
         Column(
             modifier = Modifier.padding(paddingValues).fillMaxSize().verticalScroll(scrollState),

@@ -1,44 +1,52 @@
 package org.example.pantry_manager_scan
 
 import MainDashboardScreen
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import ScannerScreen
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
-import org.example.pantry_manager_scan.domain.model.PantryItem
-import org.example.pantry_manager_scan.ui.screen.HomeScreen
-import org.example.pantry_manager_scan.ui.viewmodel.PantryState
-import kotlinx.datetime.Clock
-import org.example.pantry_manager_scan.di.sharedModule
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import org.example.pantry_manager_scan.ui.screen.AddItemScreen
+import org.example.pantry_manager_scan.ui.screen.InventoryScreen
 import org.example.pantry_manager_scan.ui.viewmodel.PantryEvent
 import org.example.pantry_manager_scan.ui.viewmodel.PantryViewModel
-import org.koin.compose.KoinApplication
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.compose.KoinContext
+import pantrymanagerscan.composeapp.generated.resources.Res
+import pantrymanagerscan.composeapp.generated.resources.ic_inventory
+import pantrymanagerscan.composeapp.generated.resources.ic_receipt
 
 enum class ScreenRoute { Home, AddItem }
 
-enum class BottomNavRoute(val title: String, val icon: ImageVector) {
-    Home("Home", Icons.Default.Home),
-    Inventory("Inventory", Icons.AutoMirrored.Filled.List),
-    Resep("Resep", Icons.Default.Menu), // Gunakan icon yang mendekati dulu
-    Profile("Profile", Icons.Default.Person)
+enum class BottomNavRoute(
+    val title: String,
+    // Tambahkan Color sebagai parameter yang akan diterima oleh lambda ini
+    val icon: @Composable (tint: Color) -> Unit
+) {
+    Home(
+        title = "Home",
+        icon = { tint -> Icon(imageVector = Icons.Default.Home, contentDescription = "Home", tint = tint) }
+    ),
+    Inventory(
+        title = "Inventory",
+        icon = { tint -> Icon(painterResource(Res.drawable.ic_inventory), contentDescription = "Inventory", tint = tint) }
+    ),
+    Resep(
+        title = "Resep",
+        icon = { tint -> Icon(painterResource(Res.drawable.ic_receipt), contentDescription = "Inventory", tint = tint) }
+    ),
+    Profile(
+        title = "Profile",
+        icon = { tint -> Icon(imageVector = Icons.Default.Person, contentDescription = "Profile", tint = tint) }
+    )
 }
 
-enum class FullScreenRoute { Main, Scanner, AddItem }
+enum class FullScreenRoute { Main, Scanner, AddItem,Inventory }
 
 @Composable
 fun App() {
@@ -68,14 +76,29 @@ fun App() {
                     onScannerClicked = { currentScreen = FullScreenRoute.Scanner }
                 )
             }
+            FullScreenRoute.Inventory -> {
+                // Tampilkan Scaffold dengan Bottom Nav
+                InventoryScreen(
+
+                    // Teruskan data ke HomeScreen
+                    state = state,
+                    onNavigateToAdd = { currentScreen = FullScreenRoute.AddItem },
+                    onDelete = { item -> viewModel.onEvent(PantryEvent.DeleteItem(item)) },
+                )
+            }
             FullScreenRoute.Scanner -> {
-                // Nanti ini diganti dengan UI Scanner sungguhan
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text("Ini Layar Scanner", modifier = Modifier.align(Alignment.Center))
-                    Button(onClick = { currentScreen = FullScreenRoute.Main }) {
-                        Text("Kembali")
+                // Panggil UI Scanner yang baru dibuat
+                ScannerScreen(
+                    onClose = {
+                        currentScreen = FullScreenRoute.Main // Kembali ke dashboard
+                    },
+                    onSave = { name, category, expiryMillis, qty ->
+                        // TODO: Nanti kita update ViewModel agar bisa menerima 'qty'
+                        // Untuk sekarang, kita simpan barangnya (tanpa qty dulu)
+                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis,isConsumed = false))
+                        currentScreen = FullScreenRoute.Main
                     }
-                }
+                )
             }
             FullScreenRoute.AddItem -> {
                 AddItemScreen(

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.example.pantry_manager_scan.BottomNavRoute
 import org.example.pantry_manager_scan.ui.screen.HomeScreen
+import org.example.pantry_manager_scan.ui.screen.InventoryScreen
 import org.example.pantry_manager_scan.ui.theme.CurvedBottomNavShape
 
 @Composable
@@ -38,7 +39,7 @@ fun MainDashboardScreen(
             ) {
                 when (currentTab) {
                     BottomNavRoute.Home -> HomeScreen(state, onNavigateToAdd, onDelete)
-                    BottomNavRoute.Inventory -> Text("Layar Inventory", Modifier.align(Alignment.Center))
+                    BottomNavRoute.Inventory -> InventoryScreen(state, onNavigateToAdd, onDelete)
                     BottomNavRoute.Resep -> Text("Layar Resep", Modifier.align(Alignment.Center))
                     BottomNavRoute.Profile -> Text("Layar Profile", Modifier.align(Alignment.Center))
                 }
@@ -96,6 +97,7 @@ fun BottomNavItem(
     onClick: (BottomNavRoute) -> Unit
 ) {
     val isSelected = currentTab == route
+    // Jika aktif warna oranye, jika tidak aktif warna abu-abu
     val color = if (isSelected) Color(0xFFFF8C00) else Color.Gray
 
     Column(
@@ -105,8 +107,15 @@ fun BottomNavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(imageVector = route.icon, contentDescription = route.title, tint = color)
+        // Panggil icon dari enum dan lempar variabel 'color' ke dalamnya
+        route.icon(color)
+
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = route.title, color = color, style = MaterialTheme.typography.labelSmall)
+
+        Text(
+            text = route.title,
+            color = color,
+            style = MaterialTheme.typography.labelSmall
+        )
     }
 }
