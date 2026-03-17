@@ -95,15 +95,15 @@ fun App() {
                     onSave = { name, category, expiryMillis, qty ->
                         // TODO: Nanti kita update ViewModel agar bisa menerima 'qty'
                         // Untuk sekarang, kita simpan barangnya (tanpa qty dulu)
-                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis,isConsumed = false))
+                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis,isConsumed = false, quantity = qty))
                         currentScreen = FullScreenRoute.Main
                     }
                 )
             }
             FullScreenRoute.AddItem -> {
                 AddItemScreen(
-                    onSave = { name, category, expiryMillis ->
-                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis, isConsumed = false))
+                    onSave = { name, category, expiryMillis,qty ->
+                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis, isConsumed = false, quantity = qty))
                         currentScreen = FullScreenRoute.Main
                     },
                     onNavigateBack = { currentScreen = FullScreenRoute.Main }

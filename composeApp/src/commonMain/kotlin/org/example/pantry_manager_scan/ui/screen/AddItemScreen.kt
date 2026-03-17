@@ -22,12 +22,13 @@ import org.example.pantry_manager_scan.ui.utils.formatMillisToDateString
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddItemScreen(
-    onSave: (name: String, category: String, expiryMillis: Long) -> Unit,
+    onSave: (name: String, category: String, expiryMillis: Long,qty:Int) -> Unit,
     onNavigateBack: () -> Unit
 ){
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var daysToExpire by remember { mutableStateOf("") }
+    var quantityValue by remember { mutableStateOf("") }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedDateMillis by remember { mutableStateOf<Long?>(null) }
@@ -63,6 +64,14 @@ fun AddItemScreen(
             )
 
             OutlinedTextField(
+                value = quantityValue,
+                onValueChange = { quantityValue = it },
+                label = { Text("Jumlah barang (misal: 0)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            OutlinedTextField(
                 value = if (selectedDateMillis != null) {
                     formatMillisToDateString(selectedDateMillis!!)
                 } else {
@@ -94,7 +103,7 @@ fun AddItemScreen(
                     if (name.isNotBlank() && selectedDateMillis != null) {
                         // Tidak perlu dihitung manual lagi, karena DatePicker langsung
                         // memberikan format UTC Epoch Milliseconds!
-                        onSave(name, category, selectedDateMillis!!)
+                        onSave(name, category, selectedDateMillis!!,quantityValue.toInt())
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -140,7 +149,7 @@ fun AddItemScreen(
 fun AddItemScreenPreview() {
     MaterialTheme {
         AddItemScreen(
-            onSave = { name, category, expiryMillis ->
+            onSave = { name, category, expiryMillis,qty->
                 // Handle save logic here
             },
             onNavigateBack = {}

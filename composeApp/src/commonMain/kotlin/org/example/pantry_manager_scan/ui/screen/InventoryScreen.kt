@@ -1,5 +1,6 @@
 package org.example.pantry_manager_scan.ui.screen
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -39,73 +40,69 @@ fun InventoryScreen(
 ) {
     val scrollState = rememberScrollState()
     Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = { Text("Inventory Screen") },
-//            )
-//        },
-        containerColor = Color.LightGray.copy(alpha = 10F),
+        // Perbaikan nilai alpha menjadi 0.1f
+        containerColor = Color.LightGray.copy(alpha = 0.1f),
         floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToAdd) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier.padding(paddingValues).fillMaxSize().verticalScroll(scrollState),
-            horizontalAlignment = Alignment.Start
+        // 1. Ganti Column utama menjadi Box agar state loading/error/empty bisa di tengah
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+            // verticalScroll DIHAPUS DARI SINI
         ) {
             when {
                 state.isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
                 state.error != null -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Error: ${state.error}",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                    Text(
+                        text = "Error: ${state.error}",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
                 state.items.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Pantry masih kosong. Yuk tambah barang!",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+                    // 2. Sekarang teks ini pasti presisi di tengah layar Box!
+                    Text(
+                        text = "Pantry masih kosong. Yuk tambah barang!",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
                 else -> {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    // 3. Pindahkan verticalScroll HANYA ke bagian list item ini
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    state.items.forEach { item ->
-                        Box(
-                            modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp)
-                        ) {
-                            PantryItemCard(item = item, onDelete = { onDelete(item) })
+                        state.items.forEach { item ->
+                            Box(
+                                modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp)
+                            ) {
+                                PantryItemCard(item = item, onDelete = { onDelete(item) })
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
 
-                    Spacer(modifier = Modifier.height(100.dp)) // Ruang untuk Bottom Nav
-//                        LazyColumn(
-//                            modifier = Modifier.fillMaxSize(),
-//                            contentPadding = PaddingValues(16.dp),
-//                            verticalArrangement = Arrangement.spacedBy(8.dp)
-//                        ) {
-//                            items(state.items) { item ->
-//                                PantryItemCard(item = item, onDelete = { onDelete(item) })
-//                            }
-//                        }
+                        Spacer(modifier = Modifier.height(100.dp)) // Ruang untuk Bottom Nav
+                    }
                 }
             }
         }
-
     }
 }
 

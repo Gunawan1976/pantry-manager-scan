@@ -64,11 +64,37 @@ fun ScannerScreen(
 
     var expiryDateMillis by remember { mutableStateOf(Clock.System.now().toEpochMilliseconds()) }
 
+    var isScanning by remember { mutableStateOf(true) }
+
     // Warna dari desainmu
     val OrangePrimary = Color(0xFFE65100)
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFF2C2C2C))) { // Warna gelap ala kamera
-        CameraPreview(modifier = Modifier.fillMaxSize())
+        if (isScanning) {
+            CameraPreview(
+                modifier = Modifier.fillMaxSize(),
+                onBarcodeScanned = { scannedCode ->
+                    if (isScanning) {
+                        // 1. Masukkan angka barcode ke form
+                        name = "Mencari data: $scannedCode..."
+
+                        // 2. KUNCI SCANNERNYA! Agar tidak nge-spam
+                        isScanning = false
+
+                        // TODO: Nanti di sini kita panggil fungsi API untuk mencari nama barang aslinya
+                    }
+                }
+            )
+        } else {
+            // Jika sudah berhasil scan, bekukan layarnya (tampilkan background gelap sementara)
+            Box(modifier = Modifier.fillMaxSize().background(Color(0xFF2C2C2C))) {
+                Text(
+                    text = "Barcode Terkunci: $name\n(Klik ikon X untuk membatalkan)",
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
         // --- 1. AREA MOCKUP KAMERA (Background) ---
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -238,14 +264,38 @@ fun ScannerScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Tombol Simpan
-                Button(
-                    onClick = { onSave(name, category, expiryDateMillis, quantity) },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = name.isNotBlank()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Simpan Barang", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    // Tombol Pertama
+                    Button(
+                        onClick = { onSave(name, category, expiryDateMillis, quantity) },
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                        shape = RoundedCornerShape(16.dp),
+                        enabled = name.isNotBlank()
+                    ) {
+                        Text("Simpan", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = {
+                            if (!isScanning) {
+                                // Kalau sedang terkunci, reset form dan buka kunci scanner
+                                isScanning = true
+                                name = ""
+                            } else {
+                                // Kalau memang sedang scanning, tutup layar Scanner kembali ke Home
+                                onClose()
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Reset", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp)) // Jarak aman bawah

@@ -69,7 +69,9 @@ kotlin {
             implementation("androidx.camera:camera-mlkit-vision:${camerax_version}")
             // If you want to additionally use the CameraX Extensions library
             implementation("androidx.camera:camera-extensions:${camerax_version}")
-            
+
+            implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
             implementation(libs.guava)
         }
     }

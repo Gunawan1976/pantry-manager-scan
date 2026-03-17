@@ -20,7 +20,8 @@ class PantryRepositoryImpl(
                     name = entity.name,
                     category = entity.category,
                     expiryDateMillis = entity.expiryDateMillis,
-                    isConsumed = entity.isConsumed
+                    isConsumed = entity.isConsumed,
+                    quantity = entity.quantity
                 )
             }
         }
@@ -33,7 +34,8 @@ class PantryRepositoryImpl(
             name = item.name,
             category = item.category,
             expiryDateMillis = item.expiryDateMillis,
-            isConsumed = item.isConsumed ?: false
+            isConsumed = item.isConsumed ?: false,
+            quantity = item.quantity
         )
         dao.insertItem(entity)
     }
@@ -44,7 +46,8 @@ class PantryRepositoryImpl(
             name = item.name,
             category = item.category,
             expiryDateMillis = item.expiryDateMillis,
-            isConsumed = item.isConsumed  ?: false
+            isConsumed = item.isConsumed  ?: false,
+            quantity = item.quantity
         )
         dao.deleteItem(entity)
     }

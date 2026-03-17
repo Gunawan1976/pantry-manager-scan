@@ -10,5 +10,6 @@ data class PantryEntity(
     val name: String,
     val category: String,
     val expiryDateMillis: Long,
-    val isConsumed: Boolean
+    val isConsumed: Boolean,
+    val quantity: Int
 )

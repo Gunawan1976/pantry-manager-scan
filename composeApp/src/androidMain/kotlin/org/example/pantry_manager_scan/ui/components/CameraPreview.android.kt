@@ -5,6 +5,8 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -24,9 +26,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
+import java.util.concurrent.Executors
+import android.util.Log
 
 @Composable
-actual fun CameraPreview(modifier: Modifier) {
+actual fun CameraPreview(modifier: Modifier, onBarcodeScanned: (String) -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -58,16 +64,28 @@ actual fun CameraPreview(modifier: Modifier) {
                 val previewView = PreviewView(ctx)
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
+                val cameraExecutor = Executors.newSingleThreadExecutor()
+
                 cameraProviderFuture.addListener({
                     val cameraProvider = cameraProviderFuture.get()
                     val preview = Preview.Builder().build().also {
                         it.setSurfaceProvider(previewView.surfaceProvider)
                     }
+
+                    val imageAnalyzer = ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                        .also {
+                            it.setAnalyzer(cameraExecutor) { imageProxy ->
+                                processImageProxy(imageProxy, onBarcodeScanned)
+                            }
+                        }
+
                     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                     try {
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+                        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview,imageAnalyzer)
                     } catch (exc: Exception) {
                         exc.printStackTrace()
                     }
@@ -81,5 +99,42 @@ actual fun CameraPreview(modifier: Modifier) {
         Box(modifier = modifier.background(Color.Black), contentAlignment = Alignment.Center) {
             Text("Meminta Izin Kamera...", color = Color.White)
         }
+    }
+}
+
+// Fungsi helper untuk menerjemahkan frame kamera ke ML Kit
+@androidx.annotation.OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalGetImage::class)
+private fun processImageProxy(
+    imageProxy: androidx.camera.core.ImageProxy,
+    onBarcodeScanned: (String) -> Unit
+) {
+    val mediaImage = imageProxy.image
+    if (mediaImage != null) {
+        val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+        val scanner = BarcodeScanning.getClient()
+
+         Log.d("ScannerDebug", "Memproses 1 frame gambar...")
+
+        scanner.process(image)
+            .addOnSuccessListener { barcodes ->
+                if (barcodes.isNotEmpty()) {
+                    Log.d("ScannerDebug", "KETEMU ${barcodes.size} BARCODE!")
+                }
+                for (barcode in barcodes) {
+                    barcode.rawValue?.let { scannedValue ->
+                        Log.d("ScannerDebug", "Isi Barcode: $scannedValue")
+                        onBarcodeScanned(scannedValue)
+                    }
+                }
+            }
+            .addOnFailureListener { e->
+                Log.e("ScannerDebug", "ML Kit Error: ${e.message}")            }
+            .addOnCompleteListener {
+                // Wajib ditutup agar frame selanjutnya bisa masuk
+                imageProxy.close()
+            }
+    } else {
+        imageProxy.close()
     }
 }
