@@ -1,5 +1,7 @@
 package org.example.pantry_manager_scan.ui.screen
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,11 +9,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -19,11 +24,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxDefaults
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -90,11 +102,56 @@ fun InventoryScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         state.items.forEach { item ->
-                            Box(
-                                modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp)
-                            ) {
-                                PantryItemCard(item = item, onDelete = { onDelete(item) })
+
+                            val dismissState = rememberSwipeToDismissBoxState()
+
+                            LaunchedEffect(dismissState.currentValue) {
+                                // Kalau item sudah selesai digeser penuh ke kiri
+                                if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                                    onDelete(item) // Hapus datanya!
+
+                                    // Opsional: Kalau kamu butuh dia balik ke awal (misal gagal hapus)
+                                     dismissState.reset()
+                                }
                             }
+
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                enableDismissFromStartToEnd = true,
+                                content = {
+                                    Box(
+                                        modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp)
+                                    ) {
+                                        PantryItemCard(item = item, onDelete = { onDelete(item) })
+                                    }
+                                }, backgroundContent = {
+                                    // 3. Desain Background Merah (Kotak di balik Card)
+                                    val color by animateColorAsState(
+                                        targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
+                                            Color.Red // Merah saat digeser
+                                        } else {
+                                            Color.Transparent // Abu-abu sebelum digeser
+                                        }
+                                    )
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(color)
+                                            .padding(horizontal = 20.dp),
+                                        contentAlignment = Alignment.CenterEnd // Ikon di kanan
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Hapus Barang",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                },
+                            )
+
                             Spacer(modifier = Modifier.height(8.dp))
                         }
 

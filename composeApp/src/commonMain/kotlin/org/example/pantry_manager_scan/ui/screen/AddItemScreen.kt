@@ -3,6 +3,9 @@ package org.example.pantry_manager_scan.ui.screen
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -11,9 +14,13 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode.Companion.Color
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.example.pantry_manager_scan.domain.model.PantryItem
 import org.example.pantry_manager_scan.ui.viewmodel.PantryState
 import kotlinx.datetime.Clock
@@ -32,6 +39,9 @@ fun AddItemScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedDateMillis by remember { mutableStateOf<Long?>(null) }
+
+    val categoryList = listOf("Kulkas", "Lemari Kering", "Bumbu", "Minuman")
+
 
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -53,13 +63,6 @@ fun AddItemScreen(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nama Barang (misal: Susu UHT)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Kategori (misal: Minuman)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -95,6 +98,41 @@ fun AddItemScreen(
                     Icon(imageVector = Icons.Default.DateRange, contentDescription = "Buka Kalender")
                 }
             )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Kategori & Lokasi", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(categoryList) { cat ->
+                    val isSelected = category == cat
+
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { category = cat },
+                        label = {
+                            Text(
+                                text = cat,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color(0xFFFF8C00).copy(alpha = 0.2f),
+                            selectedLabelColor = Color(0xFFFF8C00)
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = if (isSelected) Color(0xFFA39D9D) else Color(0xFFFF8C00)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.weight(1f)) // Mendorong tombol ke paling bawah
 

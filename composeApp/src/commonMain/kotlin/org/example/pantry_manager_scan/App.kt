@@ -1,16 +1,14 @@
 package org.example.pantry_manager_scan
 
 import MainDashboardScreen
-import ScannerScreen
+import org.example.pantry_manager_scan.ui.screen.ScannerScreen
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import org.example.pantry_manager_scan.ui.screen.AddItemScreen
 import org.example.pantry_manager_scan.ui.screen.InventoryScreen
 import org.example.pantry_manager_scan.ui.viewmodel.PantryEvent

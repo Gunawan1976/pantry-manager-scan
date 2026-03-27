@@ -1,6 +1,7 @@
+package org.example.pantry_manager_scan.ui.screen
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,28 +15,27 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.*
@@ -46,6 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import org.example.pantry_manager_scan.data.remote.OpenFoodFactsApi.fetchProductNameFromApi
 import org.example.pantry_manager_scan.ui.components.CameraPreview
 import org.example.pantry_manager_scan.ui.utils.formatMillisToDateString
 import kotlin.time.Clock
@@ -57,6 +59,7 @@ fun ScannerScreen(
     onClose: () -> Unit,
     onSave: (name: String, category: String, expiryMillis: Long, qty: Int) -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Kulkas") }
@@ -65,6 +68,9 @@ fun ScannerScreen(
     var expiryDateMillis by remember { mutableStateOf(Clock.System.now().toEpochMilliseconds()) }
 
     var isScanning by remember { mutableStateOf(true) }
+
+    val categoryList = listOf("Kulkas", "Lemari Kering", "Bumbu", "Minuman")
+
 
     // Warna dari desainmu
     val OrangePrimary = Color(0xFFE65100)
@@ -75,13 +81,18 @@ fun ScannerScreen(
                 modifier = Modifier.fillMaxSize(),
                 onBarcodeScanned = { scannedCode ->
                     if (isScanning) {
-                        // 1. Masukkan angka barcode ke form
-                        name = "Mencari data: $scannedCode..."
+                        isScanning = false // Kunci scanner
+                        name = "Mencari data: $scannedCode..." // Teks loading sementara
 
-                        // 2. KUNCI SCANNERNYA! Agar tidak nge-spam
-                        isScanning = false
-
-                        // TODO: Nanti di sini kita panggil fungsi API untuk mencari nama barang aslinya
+                        // Jalankan pemanggilan API di background
+                        coroutineScope.launch {
+                            val apiResult = fetchProductNameFromApi(scannedCode)
+                            if (apiResult != null) {
+                                name = apiResult // Ganti nama dengan hasil dari internet!
+                            } else {
+                                name = "Tidak ditemukan ($scannedCode)" // Gagal, biarkan user ketik manual
+                            }
+                        }
                     }
                 }
             )
@@ -128,7 +139,7 @@ fun ScannerScreen(
                 .padding(top = 48.dp, end = 16.dp)
                 .background(Color.Black.copy(alpha = 0.5f), CircleShape)
         ) {
-            androidx.compose.material3.Icon(
+            Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Tutup",
             )
@@ -234,6 +245,38 @@ fun ScannerScreen(
                         fontWeight = FontWeight.SemiBold,
                         color = Color.DarkGray
                     )
+                }
+
+                Text("Kategori & Lokasi", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(categoryList) { cat ->
+                        val isSelected = category == cat
+
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { category = cat },
+                            label = {
+                                Text(
+                                    text = cat,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFFFF8C00).copy(alpha = 0.2f),
+                                selectedLabelColor = Color(0xFFFF8C00)
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = if (isSelected) Color(0xFFA39D9D) else Color(0xFFFF8C00)
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                    }
                 }
 
                 // Tombol Tambah Hari Cepat (+1 Minggu, +1 Bulan)
