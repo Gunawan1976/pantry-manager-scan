@@ -50,14 +50,16 @@ import kotlinx.coroutines.launch
 import org.example.pantry_manager_scan.data.remote.OpenFoodFactsApi.fetchProductNameFromApi
 import org.example.pantry_manager_scan.ui.components.CameraPreview
 import org.example.pantry_manager_scan.ui.utils.formatMillisToDateString
+import org.example.pantry_manager_scan.ui.viewmodel.PantryViewModel
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
 @Composable
 fun ScannerScreen(
+    viewModel: PantryViewModel,
     onClose: () -> Unit,
-    onSave: (name: String, category: String, expiryMillis: Long, qty: Int) -> Unit
+    onSave: (name: String, category: String, expiryMillis: Long, qty: Int,currentBarcode:String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -71,6 +73,7 @@ fun ScannerScreen(
 
     val categoryList = listOf("Kulkas", "Lemari Kering", "Bumbu", "Minuman")
 
+    var currentBarcode by remember { mutableStateOf<String?>(null) } // Simpan barcode saat ini
 
     // Warna dari desainmu
     val OrangePrimary = Color(0xFFE65100)
@@ -82,15 +85,18 @@ fun ScannerScreen(
                 onBarcodeScanned = { scannedCode ->
                     if (isScanning) {
                         isScanning = false // Kunci scanner
+                        currentBarcode = scannedCode
                         name = "Mencari data: $scannedCode..." // Teks loading sementara
 
                         // Jalankan pemanggilan API di background
                         coroutineScope.launch {
-                            val apiResult = fetchProductNameFromApi(scannedCode)
-                            if (apiResult != null) {
-                                name = apiResult // Ganti nama dengan hasil dari internet!
-                            } else {
-                                name = "Tidak ditemukan ($scannedCode)" // Gagal, biarkan user ketik manual
+                            val localName = viewModel.checkLocalCache(scannedCode)
+                            if (localName != null){
+                                name = localName
+                            }else{
+                                name = "Mencari di Internet..."
+                                val apiResult = fetchProductNameFromApi(scannedCode)
+                                name = apiResult ?: "" // Kosongkan agar user bisa ngetik manual
                             }
                         }
                     }
@@ -311,9 +317,8 @@ fun ScannerScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Tombol Pertama
                     Button(
-                        onClick = { onSave(name, category, expiryDateMillis, quantity) },
+                        onClick = { onSave(name, category, expiryDateMillis, quantity,currentBarcode ?: "") },
                         modifier = Modifier.weight(1f).height(50.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
                         shape = RoundedCornerShape(16.dp),
@@ -347,15 +352,16 @@ fun ScannerScreen(
     }
 }
 
-@Preview
-@Composable
-fun ScannerScreenPreview() {
-    MaterialTheme {
-        ScannerScreen(
-            onClose = {},
-            onSave = { name, category, expiryMillis, qty ->
-                // Handle save logic here
-            }
-        )
-    }
-}
+//@Preview
+//@Composable
+//fun ScannerScreenPreview() {
+//    MaterialTheme {
+//        ScannerScreen(
+//            viewModel = PantryViewModel(pantrymanagerscan.composeapp.generated.resources.Res),
+//            onClose = {},
+//            onSave = { name, category, expiryMillis, qty ->
+//                // Handle save logic here
+//            }
+//        )
+//    }
+//}

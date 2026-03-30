@@ -23,7 +23,7 @@ class PantryViewModel(private val repository: PantryRepository) : ViewModel() {
         when (event) {
             is PantryEvent.LoadItems -> loadItems()
             is PantryEvent.DeleteItem -> deleteItem(event.item)
-            is PantryEvent.SaveItem -> saveItem(event.name, event.category, event.expiryDateMillis,event.isConsumed,event.quantity)
+            is PantryEvent.SaveItem -> saveItem(event.name, event.category, event.expiryDateMillis,event.isConsumed,event.quantity,event.barcode ?: "")
         }
     }
 
@@ -46,12 +46,18 @@ class PantryViewModel(private val repository: PantryRepository) : ViewModel() {
             repository.deleteItem(item = item)
         }
     }
+
+    suspend fun checkLocalCache(barcode: String): String? {
+        return repository.getProductNameByBarcode(barcode)
+    }
+
     private fun saveItem(
         name: String,
         category: String,
         expiryDateMillis: Long,
         isConsumed: Boolean,
-        quantity: Int
+        quantity: Int,
+        barcode: String,
     ) {
         viewModelScope.launch {
             val newItem = PantryItem(
@@ -59,7 +65,8 @@ class PantryViewModel(private val repository: PantryRepository) : ViewModel() {
                 category = category,
                 expiryDateMillis = expiryDateMillis,
                 isConsumed = isConsumed,
-                quantity = quantity
+                quantity = quantity,
+                barcode = barcode
             )
             repository.insertItem(newItem) // Kirim ke Room Database!
 

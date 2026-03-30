@@ -30,6 +30,8 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 import android.util.Log
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.common.Barcode
 
 @Composable
 actual fun CameraPreview(modifier: Modifier, onBarcodeScanned: (String) -> Unit) {
@@ -112,7 +114,19 @@ private fun processImageProxy(
     val mediaImage = imageProxy.image
     if (mediaImage != null) {
         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-        val scanner = BarcodeScanning.getClient()
+
+        val options = BarcodeScannerOptions.Builder()
+            .setBarcodeFormats(
+                Barcode.FORMAT_EAN_13, // Standar ritel Indonesia/Eropa
+                Barcode.FORMAT_EAN_8,
+                Barcode.FORMAT_UPC_A,  // Standar ritel Amerika
+                Barcode.FORMAT_UPC_E,
+                Barcode.FORMAT_QR_CODE // Opsional, kalau aplikasimu nanti mau dukung QR Code
+            )
+            .build()
+
+
+        val scanner = BarcodeScanning.getClient(options)
 
          Log.d("ScannerDebug", "Memproses 1 frame gambar...")
 

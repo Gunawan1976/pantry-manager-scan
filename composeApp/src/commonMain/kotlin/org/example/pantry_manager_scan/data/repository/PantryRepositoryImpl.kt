@@ -21,21 +21,28 @@ class PantryRepositoryImpl(
                     category = entity.category,
                     expiryDateMillis = entity.expiryDateMillis,
                     isConsumed = entity.isConsumed,
-                    quantity = entity.quantity
+                    quantity = entity.quantity,
+                    barcode = entity.barcode
                 )
             }
         }
     }
 
+    override suspend fun getProductNameByBarcode(barcode: String): String? {
+        return dao.getProductNameByBarcode(barcode)
+    }
+
     override suspend fun insertItem(item: PantryItem) {
         // Terjemahkan Domain Model menjadi Entity sebelum disimpan ke DB
+        print("isi dari ini : ${item.barcode}")
         val entity = PantryEntity(
             id = item.id,
             name = item.name,
             category = item.category,
             expiryDateMillis = item.expiryDateMillis,
             isConsumed = item.isConsumed ?: false,
-            quantity = item.quantity
+            quantity = item.quantity,
+            barcode = item.barcode ?: ""
         )
         dao.insertItem(entity)
     }
@@ -47,7 +54,8 @@ class PantryRepositoryImpl(
             category = item.category,
             expiryDateMillis = item.expiryDateMillis,
             isConsumed = item.isConsumed  ?: false,
-            quantity = item.quantity
+            quantity = item.quantity,
+            barcode = item.barcode ?: ""
         )
         dao.deleteItem(entity)
     }

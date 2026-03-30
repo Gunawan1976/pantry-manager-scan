@@ -13,6 +13,9 @@ interface PantryDao {
     @Query("SELECT * FROM pantry_items ORDER BY expiryDateMillis ASC")
     fun getAllItems(): Flow<List<PantryEntity>>
 
+    @Query("SELECT name FROM pantry_items WHERE barcode = :barcode ORDER BY id DESC LIMIT 1")
+    suspend fun getProductNameByBarcode(barcode: String): String?
+
     // Menyimpan atau mengupdate data (jika ID sudah ada, data direplace)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertItem(item: PantryEntity)

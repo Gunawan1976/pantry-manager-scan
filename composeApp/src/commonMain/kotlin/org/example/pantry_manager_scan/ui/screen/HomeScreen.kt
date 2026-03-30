@@ -325,14 +325,18 @@ fun HomeScreenPreview() {
                         name = "Susu UHT",
                         category = "Minuman",
                         expiryDateMillis = 1735689600000L,
-                        isConsumed = false
+                        isConsumed = false,
+                        quantity = 1,
+                        barcode = "1234567890123"
                     ),
                     PantryItem(
                         id = 2,
                         name = "Roti Tawar",
                         category = "Makanan",
                         expiryDateMillis = 1735689600000L,
-                        isConsumed = false
+                        isConsumed = false,
+                        quantity = 1,
+                        barcode = "1234567890123"
                     )
                 ),
                 isLoading = false

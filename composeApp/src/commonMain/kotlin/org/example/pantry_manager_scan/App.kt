@@ -87,13 +87,12 @@ fun App() {
             FullScreenRoute.Scanner -> {
                 // Panggil UI Scanner yang baru dibuat
                 ScannerScreen(
+                    viewModel = viewModel,
                     onClose = {
                         currentScreen = FullScreenRoute.Main // Kembali ke dashboard
                     },
-                    onSave = { name, category, expiryMillis, qty ->
-                        // TODO: Nanti kita update ViewModel agar bisa menerima 'qty'
-                        // Untuk sekarang, kita simpan barangnya (tanpa qty dulu)
-                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis,isConsumed = false, quantity = qty))
+                    onSave = { name, category, expiryMillis, qty,currentBarcode ->
+                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis,isConsumed = false, quantity = qty, barcode =currentBarcode ))
                         currentScreen = FullScreenRoute.Main
                     }
                 )
@@ -101,7 +100,7 @@ fun App() {
             FullScreenRoute.AddItem -> {
                 AddItemScreen(
                     onSave = { name, category, expiryMillis,qty ->
-                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis, isConsumed = false, quantity = qty))
+                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis, isConsumed = false, quantity = qty, barcode = null))
                         currentScreen = FullScreenRoute.Main
                     },
                     onNavigateBack = { currentScreen = FullScreenRoute.Main }

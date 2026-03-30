@@ -27,7 +27,6 @@ object OpenFoodFactsApi {
             var name : String = ""
 
             if (response.status == 1 && response.product != null) {
-                // Gabungkan Merek dan Nama Produk (Misal: "Indomie Mie Goreng")
                 val brand = response.product.brands ?: ""
                 name = response.product.productName ?: "Produk Tak Dikenal"
                 if (brand.isNotBlank()) "$brand $name" else name
