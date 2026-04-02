@@ -5,7 +5,9 @@ data class PantryItem(
     val name: String,
     val category: String,
     val expiryDateMillis :Long,
-    val isConsumed : Boolean?
+    val isConsumed : Boolean?,
+    val quantity:Int =1,
+    val barcode: String?
 ){
     fun getDaysRemaining(currentDateMillis: Long):Int{
         val diffMillis = expiryDateMillis - currentDateMillis

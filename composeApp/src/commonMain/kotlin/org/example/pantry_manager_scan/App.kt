@@ -1,75 +1,111 @@
 package org.example.pantry_manager_scan
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
+import MainDashboardScreen
+import org.example.pantry_manager_scan.ui.screen.ScannerScreen
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import org.example.pantry_manager_scan.domain.model.PantryItem
-import org.example.pantry_manager_scan.ui.screen.HomeScreen
-import org.example.pantry_manager_scan.ui.viewmodel.PantryState
+import androidx.compose.ui.graphics.Color
+import org.example.pantry_manager_scan.ui.screen.AddItemScreen
+import org.example.pantry_manager_scan.ui.screen.InventoryScreen
+import org.example.pantry_manager_scan.ui.viewmodel.PantryEvent
+import org.example.pantry_manager_scan.ui.viewmodel.PantryViewModel
 import org.jetbrains.compose.resources.painterResource
-
+import org.koin.compose.viewmodel.koinViewModel
 import pantrymanagerscan.composeapp.generated.resources.Res
-import pantrymanagerscan.composeapp.generated.resources.compose_multiplatform
-import kotlinx.datetime.Clock
+import pantrymanagerscan.composeapp.generated.resources.ic_inventory
+import pantrymanagerscan.composeapp.generated.resources.ic_receipt
 
+enum class ScreenRoute { Home, AddItem }
+
+enum class BottomNavRoute(
+    val title: String,
+    // Tambahkan Color sebagai parameter yang akan diterima oleh lambda ini
+    val icon: @Composable (tint: Color) -> Unit
+) {
+    Home(
+        title = "Home",
+        icon = { tint -> Icon(imageVector = Icons.Default.Home, contentDescription = "Home", tint = tint) }
+    ),
+    Inventory(
+        title = "Inventory",
+        icon = { tint -> Icon(painterResource(Res.drawable.ic_inventory), contentDescription = "Inventory", tint = tint) }
+    ),
+    Resep(
+        title = "Resep",
+        icon = { tint -> Icon(painterResource(Res.drawable.ic_receipt), contentDescription = "Inventory", tint = tint) }
+    ),
+    Profile(
+        title = "Profile",
+        icon = { tint -> Icon(imageVector = Icons.Default.Person, contentDescription = "Profile", tint = tint) }
+    )
+}
+
+enum class FullScreenRoute { Main, Scanner, AddItem,Inventory }
 
 @Composable
-@Preview
 fun App() {
     MaterialTheme {
-//        var showContent by remember { mutableStateOf(false) }
-//        Column(
-//            modifier = Modifier
-//                .background(MaterialTheme.colorScheme.primaryContainer)
-//                .safeContentPadding()
-//                .fillMaxSize(),
-//            horizontalAlignment = Alignment.CenterHorizontally,
-//        ) {
-//            Button(onClick = { showContent = !showContent }) {
-//                Text("Click me!")
-//            }
-//            AnimatedVisibility(showContent) {
-//                val greeting = remember { Greeting().greet() }
-//                Column(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                ) {
-//                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-//                    Text("Compose: $greeting")
-//                }
-//            }
-//        }
-        val now = Clock.System.now().toEpochMilliseconds()
-        val oneDay = 86400000L
+        // 2. Minta ViewModel dari Koin secara otomatis! (Keajaiban DI)
+        val viewModel = koinViewModel<PantryViewModel>()
 
-        val dummyData = listOf(
-            PantryItem(id = 1, name="Susu UHT", category = "Minuman", expiryDateMillis = now + (5 * oneDay), isConsumed =false ), // Sisa 5 hari
-            PantryItem(id = 2, name = "Roti Tawar", category ="Makanan", expiryDateMillis =now + (2 * oneDay), isConsumed =false ), // Sisa 2 hari
-            PantryItem(3, name = "Saus Tomat", category ="Bumbu", expiryDateMillis =now - (1 * oneDay), isConsumed =false )  // Expired 1 hari
-        )
+        // 3. Dengarkan perubahan State dari ViewModel (Mirip BlocBuilder/watch)
+        val state by viewModel.state.collectAsState()
 
-        // 2. Bungkus ke dalam State
-        val dummyState = PantryState(
-            items = dummyData,
-            isLoading = false
-        )
+        // State untuk navigasi layar penuh (App Level)
+        var currentScreen by remember { mutableStateOf(FullScreenRoute.Main) }
 
-        // 3. Tampilkan UI-nya
-        HomeScreen(
-            state = dummyState,
-            onNavigateToAdd = { println("Navigasi ke halaman tambah diklik!") },
-            onDelete = { item -> println("Barang ${item.name} dihapus!") }
-        )
+        // State untuk navigasi tab di bawah (hanya aktif kalau currentScreen == Main)
+        var currentBottomTab by remember { mutableStateOf(BottomNavRoute.Home) }
+
+        when (currentScreen) {
+            FullScreenRoute.Main -> {
+                // Tampilkan Scaffold dengan Bottom Nav
+                MainDashboardScreen(
+                    currentTab = currentBottomTab,
+                    onTabSelected = { currentBottomTab = it },
+                    // Teruskan data ke HomeScreen
+                    state = state,
+                    onNavigateToAdd = { currentScreen = FullScreenRoute.AddItem },
+                    onDelete = { item -> viewModel.onEvent(PantryEvent.DeleteItem(item)) },
+                    onScannerClicked = { currentScreen = FullScreenRoute.Scanner }
+                )
+            }
+            FullScreenRoute.Inventory -> {
+                // Tampilkan Scaffold dengan Bottom Nav
+                InventoryScreen(
+
+                    // Teruskan data ke HomeScreen
+                    state = state,
+                    onNavigateToAdd = { currentScreen = FullScreenRoute.AddItem },
+                    onDelete = { item -> viewModel.onEvent(PantryEvent.DeleteItem(item)) },
+                )
+            }
+            FullScreenRoute.Scanner -> {
+                // Panggil UI Scanner yang baru dibuat
+                ScannerScreen(
+                    viewModel = viewModel,
+                    onClose = {
+                        currentScreen = FullScreenRoute.Main // Kembali ke dashboard
+                    },
+                    onSave = { name, category, expiryMillis, qty,currentBarcode ->
+                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis,isConsumed = false, quantity = qty, barcode =currentBarcode ))
+                        currentScreen = FullScreenRoute.Main
+                    }
+                )
+            }
+            FullScreenRoute.AddItem -> {
+                AddItemScreen(
+                    onSave = { name, category, expiryMillis,qty ->
+                        viewModel.onEvent(PantryEvent.SaveItem(name, category, expiryMillis, isConsumed = false, quantity = qty, barcode = null))
+                        currentScreen = FullScreenRoute.Main
+                    },
+                    onNavigateBack = { currentScreen = FullScreenRoute.Main }
+                )
+            }
+        }
     }
 }
